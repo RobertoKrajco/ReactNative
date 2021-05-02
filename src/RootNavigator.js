@@ -29,14 +29,15 @@ export default function Root() {
                 }
             }}
         >
-            <Stack.Screen 
-                name="bottom" 
-                component={BottomNavScreen} 
-                options={({ route }) => ({ title: "Prihlásenie" ,objects:false})} 
-            />
+           
            <Stack.Screen 
                 name="login" 
                 component={LoginScreen} 
+                options={({ route }) => ({ title: "Prihlásenie" ,objects:false})} 
+            />
+             <Stack.Screen 
+                name="bottom" 
+                component={BottomNavScreen} 
                 options={({ route }) => ({ title: "Prihlásenie" ,objects:false})} 
             />
             <Stack.Screen

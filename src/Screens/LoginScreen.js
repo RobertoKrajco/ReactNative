@@ -30,7 +30,7 @@ const TextInputExample = ({navigation}) => {
 				global.access_token = json.access_token;
 				navigation.reset({
 					index: 0,
-					routes: [{ name: 'objects' }],
+					routes: [{ name: 'bottom' }],
 				});
 			} else {
 				setErrorMessage('Nesprávne meno alebo heslo');
