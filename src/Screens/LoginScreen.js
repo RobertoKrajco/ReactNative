@@ -5,7 +5,7 @@ import {
 	ScrollView,
 } from 'react-native';
 import { TextInput, Button, Text, useTheme } from 'react-native-paper';
-import { URL } from './../global';
+import { get, URL } from './../global';
 import AsyncStorage from '@react-native-community/async-storage';
 
 const TextInputExample = ({navigation}) => {
@@ -27,7 +27,10 @@ const TextInputExample = ({navigation}) => {
 		}).then( async (json) => {
 			if (json.access_token) {
 				await AsyncStorage.setItem('@token', json.access_token);
+				await AsyncStorage.setItem('@username', username);
+				await AsyncStorage.setItem('@password', password);
 				global.access_token = json.access_token;
+		
 				navigation.reset({
 					index: 0,
 					routes: [{ name: 'bottom' }],
@@ -39,6 +42,20 @@ const TextInputExample = ({navigation}) => {
 			setErrorMessage(String(err));
 		})
 	};
+
+	const  autoLogin = async () => {
+		let pass = await AsyncStorage.getItem('@password');
+		let log = await AsyncStorage.getItem('@username');
+	
+		if(log !== undefined && pass !== undefined){		
+			setPassword(pass);
+			setUsername(log);		
+			login();
+
+		}
+	}
+
+	autoLogin();
 
 	return (
 		<ScrollView

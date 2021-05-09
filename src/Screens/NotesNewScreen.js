@@ -2,7 +2,9 @@ import  React, { useState,useEffect } from 'react';
 import { SafeAreaView,Pressable, Modal,TextInput,Button, 
     View, Text ,Switch,StyleSheet,ScrollView,ToastAndroid,
     Platform,AlertIOS} from 'react-native';
+    import {  PermissionsAndroid,  StatusBar } from "react-native";
 import {Chip,List} from 'react-native-paper';
+import Permissions from "./Permissions";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { URL,get,create,update } from './../global';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -17,22 +19,36 @@ const NoteNewScreen = ({route, navigation}) => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [isEnabled, setIsEnabled] = useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
-    const [date, setDate] = useState(new Date(route?.params?.note.created_at.toString().replace(' ','T')));
-
-    
+    const [date, setDate] = useState(route?.params?.note !== undefined?new Date(route?.params?.note.created_at.toString().replace(' ','T')):new Date());
+    const timeFormat =()=>{
+        let datetime = '';
+        if(date.getHours().toString().length>1) 
+            datetime = date.getHours().toString()+':';
+        else
+            datetime = '0'+date.getHours().toString()+':';
+        if(date.getMinutes().toString().length>1)
+            datetime += date.getMinutes().toString();
+        else
+            datetime += '0'+date.getMinutes().toString();
+       return datetime;
+    }
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
     const [text, setText] = useState(typeof route?.params?.note !== "undefined"?route?.params?.note.content:'2021-01-01');
     const [newTag, setNewTag] = useState('newTag');
     const [tags,setTags] = useState([{id: 1, name: 'angellist'}]);
-    const currentDate = date.getDate().toString()+'.'+date.getMonth().toString()+'.'+date.getFullYear().toString();
-    const currentTime = date.getHours().toString()+':'+date.getMinutes().toString();
+    const currentDate = date.getDate().toString()+'.'+(date.getMonth()+1).toString()+'.'+date.getFullYear().toString();
+    const currentTime = timeFormat();
     const onChange = (event, selectedDate) => {
       const currentDate = selectedDate || date;
         console.log(selectedDate);
       setDate(currentDate);
       setShow(Platform.OS === 'ios' ? true : false);
     };
+    
+   
+
+   
     
     const showMode = currentMode => {
       setShow(true);
@@ -103,10 +119,11 @@ const NoteNewScreen = ({route, navigation}) => {
         }
     }
 
+    
     return (
         
         <View style={styles.container}>
-           
+
             <View style={{flexDirection: 'row'}}>
                 <Text style={styles.item}>Datum:</Text> 
                 <Pressable style={{padding:10,width:150,

@@ -31,6 +31,7 @@ export const get = async (path) => {
     let res = await fetch(URL + path, {
         headers: headers(),
     });
+    
     return await res.json();
 }
 

@@ -10,13 +10,14 @@ import { BottomNavigation, Text } from 'react-native-paper';
 import { createStackNavigator } from '@react-navigation/stack';
 
 
-const MyComponent = ({ route,navigation }) => {
+const MyComponent = ({route,navigation }) => {
 
   
-  const ObjectsRoute =  ()  => <ObjectsScreen />;
-  const NotesRoute = () => <NotesScreen />;
 
   const [index, setIndex] = React.useState(0);
+  const ObjectsRoute =  ()  => <ObjectsScreen index={index} route={route} navigation={navigation}/>;
+  const NotesRoute = () => <NotesScreen index={index} route={route} navigation={navigation}/>;
+  
   const [routes] = React.useState([
     { key: 'notes', title: 'Notes', icon: 'filter' },
     { key: 'objects', title: 'Objects', icon: 'album' },
@@ -30,7 +31,7 @@ const MyComponent = ({ route,navigation }) => {
 
   return (
     <BottomNavigation
-
+    
       navigationState={{ index, routes }}
       onIndexChange={setIndex}
       renderScene={ renderScene}

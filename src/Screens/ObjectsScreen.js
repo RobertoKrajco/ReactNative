@@ -9,13 +9,20 @@ import { render } from 'react-dom';
 
 
 
-const ObjectsScreen = ({ navigation }) => {
+const ObjectsScreen = ({ index,route,navigation }) => {
     const [objects, setObjects] = useState([]);
+    
+    if(index==1)
+    React.useLayoutEffect(() => {
+        console.log("Objekty");
+        navigation.setOptions({
+          title:  'Objekty' ,
+          objects: true
+        });
+      });
 
     const loadObjects = async () => {
-        
         setObjects(await get("/api/object"));
-        
     }
     
     useEffect(() => {objects

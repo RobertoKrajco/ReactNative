@@ -2,20 +2,54 @@
 
 import React, { useEffect, useState } from 'react';
 import {  ScrollView, StyleSheet, View } from 'react-native';
-import { List, IconButton} from 'react-native-paper';
+import { List, Searchbar,IconButton} from 'react-native-paper';
 import AsyncStorage from '@react-native-community/async-storage';
 import { URL,get,remove } from './../global';
 
 
-export default function NotesScreen({ route,navigation }) {
-    const [notes, setNotes] = useState([]);
-    const { objectId } = 0;
+export default function NotesScreen({ index,route,navigation }) {
 
+    const [notes, setNotes] = useState([]);
+    let {objectId} = 0;
+    if(route.params !== undefined)
+        objectId = route.params.objectId;
+    let {render} = false;
+    const [searchQuery, setSearchQuery] = React.useState('');
+    const onChangeSearch = (query) => setSearchQuery(query);
+    console.log("Poznamky"+objectId);
+    if(index ==0)
+    if(objectId==0 || objectId==undefined)
+    React.useLayoutEffect(() => {
+        
+        navigation.setOptions({
+          title:  'Poznamky' ,
+          objects: false
+        });
+
+      });
+      else
+      React.useLayoutEffect(() => {
+       
+        navigation.setOptions({
+          title:  'Poznamky objektu '+objectId ,
+          objects: false
+        });
+      });
+      
 
     const loadNotes = async () => {
-        let note = await get("/api/note");
-        setNotes(note);
-        console.log(note);
+        console.log("objid "+objectId +objectId==0 || objectId==undefined)
+        if(objectId==0 || objectId==undefined){
+            let note = await get("/api/note");
+            setNotes(note);
+        }
+        else {
+            let note = await get("/api/note/"+objectId);
+            setNotes(note);
+        }
+        
+        console.log("notes");
+        console.log(notes);
     }
 
     const deleteNote = async (index) => {
@@ -26,19 +60,35 @@ export default function NotesScreen({ route,navigation }) {
    
     useEffect(() => {notes
          loadNotes();
-         console.log("asdfasdf"+notes);
+     
     }, []);
+
+    const searchNotes = () => {
+        
+        
+    }
 
     return (
         <ScrollView style={[styles.container]}>
+            <Searchbar
+      placeholder="Search"
+      onChangeText={onChangeSearch}
+      value={searchQuery}
+      
+    />
         <List.Section>
             {
             
-                notes && notes.map((note, index) =>
+            notes &&
+            notes.map((note,index)=>{
+               
+                if(note.content.includes(searchQuery) || searchQuery === '')
+                {
+                    return   (
                     <List.Item
                         key={index}
                         title={note.content}
-                       
+                        description={note.created_at}
                         right = {() =>  
                         <View style={{flexDirection:"row"}}>
                                 <IconButton
@@ -55,8 +105,16 @@ export default function NotesScreen({ route,navigation }) {
                         
                     />
                 )
+                } else{
+                    console.log("null");
+                    return null;
+                }
+                
+            })
+       
             }
             </List.Section>
+           
         </ScrollView>
         
     );
