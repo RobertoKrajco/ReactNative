@@ -16,7 +16,6 @@ export default function NotesScreen({ index,route,navigation }) {
     let {render} = false;
     const [searchQuery, setSearchQuery] = React.useState('');
     const onChangeSearch = (query) => setSearchQuery(query);
-    console.log("Poznamky"+objectId);
     if(index ==0)
     if(objectId==0 || objectId==undefined)
     React.useLayoutEffect(() => {
@@ -38,18 +37,14 @@ export default function NotesScreen({ index,route,navigation }) {
       
 
     const loadNotes = async () => {
-        console.log("objid "+objectId +objectId==0 || objectId==undefined)
         if(objectId==0 || objectId==undefined){
             let note = await get("/api/note");
             setNotes(note);
         }
         else {
-            let note = await get("/api/note/"+objectId);
+            let note = await get("/api/note/byobject/"+objectId);
             setNotes(note);
         }
-        
-        console.log("notes");
-        console.log(notes);
     }
 
     const deleteNote = async (index) => {
@@ -106,7 +101,6 @@ export default function NotesScreen({ index,route,navigation }) {
                     />
                 )
                 } else{
-                    console.log("null");
                     return null;
                 }
                 

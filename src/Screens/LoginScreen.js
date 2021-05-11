@@ -46,12 +46,11 @@ const TextInputExample = ({navigation}) => {
 	const  autoLogin = async () => {
 		let pass = await AsyncStorage.getItem('@password');
 		let log = await AsyncStorage.getItem('@username');
-	
-		if(log !== undefined && pass !== undefined){		
+		
+		if(log !== null && pass !== null){		
 			setPassword(pass);
 			setUsername(log);		
 			login();
-
 		}
 	}
 
