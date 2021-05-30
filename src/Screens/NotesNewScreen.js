@@ -45,7 +45,6 @@ const NoteNewScreen = ({route, navigation}) => {
     const currentTime = timeFormat();
     const onChange = (event, selectedDate) => {
       const currentDate = selectedDate || date;
-        console.log(selectedDate);
       setDate(currentDate);
       setShow(Platform.OS === 'ios' ? true : false);
     };
@@ -72,8 +71,8 @@ const NoteNewScreen = ({route, navigation}) => {
     const showDatepicker = () => {showMode('date');};
     const showTimepicker = () => {showMode('time');};
     const onSelectedItemsChange = (selectedTags) => {
-        
-        setSelectedItems(selectedTags.map(v => parseInt(v)))
+        console.log(selectedTags);
+        setSelectedItems(selectedTags)
     };
 
     const createTag = async () => {
@@ -88,7 +87,6 @@ const NoteNewScreen = ({route, navigation}) => {
     }
     const removeTag = async (idTag) => {
         let res = await remove("/api/note_tag/"+route?.params?.note.id+"/"+idTag);
-        console.log(res)
     }
     //res = await get("/api/note_tag/1");
     const loadSelectedTags = async (id) => {
@@ -96,17 +94,20 @@ const NoteNewScreen = ({route, navigation}) => {
         
         let loadedTags = [];
         selectedTags.map((tag,index)=>{
-            loadedTags[index]=tag.id;
+            loadedTags[index]=String(tag.id);
         });
         setSelectedItems(loadedTags);
-        console.log("loaded tags "+loadedTags)
     }
 
     const loadTags = async () => {
-        setTags(await get("/api/tag"));
+        let tmpTags = await get("/api/tag");
+        setTags(tmpTags.map(v => {
+            v.id = String(v.id);
+            return v;
+        }));
         
     }
-console.log(selectedItems)
+
     const updateTags = async (tagId) => {
         
         let tags = await create("/api/note_tag",{
@@ -237,8 +238,7 @@ console.log(selectedItems)
                 <Text style={styles.item,{margin:0}}>  {
                  
                     tags.map((tag)=>{
-                  
-                        if(selectedItems.includes(parseInt(tag.id))||selectedItems.includes(String(tag.id)))
+                        if(selectedItems.includes(tag.id))
                         {
                             return <Chip key={tag.id} style={{border:'1px solid black'}}>{tag.name}</Chip>;
                         } else{
@@ -285,10 +285,7 @@ console.log(selectedItems)
                                                 <MultiSelect
                                                 styleListContainer={{height: 300}}
                                                 hideTags
-                                                items={tags.map(tag=>{
-                                                    tag.id = String(tag.id)
-                                                    return tag;
-                                                })}
+                                                items={tags}
                                                 uniqueKey="id"
                                                 onSelectedItemsChange={onSelectedItemsChange}
                                                 selectedItems={selectedItems}
