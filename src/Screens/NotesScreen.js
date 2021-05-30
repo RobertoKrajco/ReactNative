@@ -3,20 +3,24 @@
 import React, { useEffect, useState } from 'react';
 import {  ScrollView, StyleSheet, View } from 'react-native';
 import { List, Searchbar,IconButton} from 'react-native-paper';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { URL,get,remove } from './../global';
+import { set } from 'react-native-reanimated';
 
 
 export default function NotesScreen({ index,route,navigation }) {
 
     const [notes, setNotes] = useState([]);
     let {objectId} = 0;
+    const [loading, setloading] = useState(false)
     if(route.params !== undefined)
         objectId = route.params.objectId;
     let {render} = false;
     const [searchQuery, setSearchQuery] = React.useState('');
     const onChangeSearch = (query) => setSearchQuery(query);
-    if(index ==0)
+    console.log("index "+ index +"obj id "+objectId);
+    if(index ==0 || index==undefined){
+        
     if(objectId==0 || objectId==undefined)
     React.useLayoutEffect(() => {
         
@@ -35,15 +39,21 @@ export default function NotesScreen({ index,route,navigation }) {
         });
       });
       
+    }
 
     const loadNotes = async () => {
+        
         if(objectId==0 || objectId==undefined){
             let note = await get("/api/note");
-            setNotes(note);
+            setNotes(note)
+            
         }
         else {
+            
             let note = await get("/api/note/byobject/"+objectId);
-            setNotes(note);
+            setNotes(note)
+               
+           
         }
     }
 
@@ -53,15 +63,11 @@ export default function NotesScreen({ index,route,navigation }) {
        
     }
    
-    useEffect(() => {notes
-         loadNotes();
-     
+    useEffect(() => {
+        loadNotes();
+       
     }, []);
 
-    const searchNotes = () => {
-        
-        
-    }
 
     return (
         <ScrollView style={[styles.container]}>
@@ -74,7 +80,7 @@ export default function NotesScreen({ index,route,navigation }) {
         <List.Section>
             {
             
-            notes &&
+            notes && 
             notes.map((note,index)=>{
                
                 if(note.content.includes(searchQuery) || searchQuery === '')

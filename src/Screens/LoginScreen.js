@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
 	StyleSheet,
 	View,
@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { TextInput, Button, Text, useTheme } from 'react-native-paper';
 import { get, URL } from './../global';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TextInputExample = ({navigation}) => {
 	const { colors } = useTheme();
@@ -14,12 +14,13 @@ const TextInputExample = ({navigation}) => {
 	const [password, setPassword] = useState('');
 	const [errorMessage, setErrorMessage] = useState(null);
 
-	const login = () => {
+	const login = (pass=null,user=null) => {
+
 		fetch(URL + "/login", {
 			method: 'post',
 			body: JSON.stringify({
-				username: username,
-				password: password,
+				username: username == ''? user:username,
+				password: password == ''? pass:password,
 			}),
 			headers: { 'Content-Type': 'application/json' },
 		}).then((res) => {
@@ -47,14 +48,14 @@ const TextInputExample = ({navigation}) => {
 		let pass = await AsyncStorage.getItem('@password');
 		let log = await AsyncStorage.getItem('@username');
 		
-		if(log !== null && pass !== null){		
-			setPassword(pass);
-			setUsername(log);		
-			login();
+		if(log !== null && pass !== null){			
+			login(pass,log);
 		}
 	}
-
-	autoLogin();
+	useEffect(() => {
+        autoLogin();
+    }, []);
+	
 
 	return (
 		<ScrollView

@@ -6,13 +6,17 @@ import { SafeAreaView,Pressable, Modal,TextInput,Button,
 import {Chip,List} from 'react-native-paper';
 import Permissions from "./Permissions";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { URL,get,create,update } from './../global';
-import AsyncStorage from '@react-native-community/async-storage';
+import { URL,get,create,update,remove } from './../global';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import MultiSelect from 'react-native-multiple-select';
 import RNPickerSelect from "react-native-picker-select";
 
 
 const NoteNewScreen = ({route, navigation}) => {
+    let {objectId} = 0;
+    if(route.params !== undefined)
+        objectId = route.params.objectId;
+ 
     const { note } = useState(route.params);
     const [selectedValue, setSelectedValue] = useState(1);
     const [modalVisible, setModalVisible] = useState(false);
@@ -34,9 +38,9 @@ const NoteNewScreen = ({route, navigation}) => {
     }
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
-    const [text, setText] = useState(typeof route?.params?.note !== "undefined"?route?.params?.note.content:'2021-01-01');
-    const [newTag, setNewTag] = useState('newTag');
-    const [tags,setTags] = useState([{id: 1, name: 'angellist'}]);
+    const [text, setText] = useState(typeof route?.params?.note !== "undefined"?route?.params?.note.content:'Nova poznamka');
+    const [newTag, setNewTag] = useState('');
+    const [tags,setTags] = useState([{id: 1, name: 'taglist'}]);
     const currentDate = date.getDate().toString()+'.'+(date.getMonth()+1).toString()+'.'+date.getFullYear().toString();
     const currentTime = timeFormat();
     const onChange = (event, selectedDate) => {
@@ -45,38 +49,32 @@ const NoteNewScreen = ({route, navigation}) => {
       setDate(currentDate);
       setShow(Platform.OS === 'ios' ? true : false);
     };
-    
-   
 
-   
-    
+    if(typeof route?.params?.note !== "undefined"){
+    React.useLayoutEffect(() => {
+       
+        navigation.setOptions({
+          title:  'Poznamka '+route?.params?.note.id ,
+          objects: false
+        });
+      });
+      useEffect(() => {
+        loadSelectedTags(route?.params?.note.id);
+        loadTags();
+        console.log("refresh")
+    }, [route?.params?.note.id]);
+    }
     const showMode = currentMode => {
       setShow(true);
       setMode(currentMode);
     };
   
-    const showDatepicker = () => {
-      showMode('date');
+    const showDatepicker = () => {showMode('date');};
+    const showTimepicker = () => {showMode('time');};
+    const onSelectedItemsChange = (selectedTags) => {
+        
+        setSelectedItems(selectedTags.map(v => parseInt(v)))
     };
-  
-    const showTimepicker = () => {
-      showMode('time');
-      
-    };
-
-    const loadTags = async () => {
-        setTags(await get("/api/tag"));
-
-    }
-   
-    const onSelectedItemsChange = (selectedItems) => {
-        // Set Selected Items
-        setSelectedItems(selectedItems);
-      };
-
-    useEffect(() => {tags
-        loadTags();
-    }, []);
 
     const createTag = async () => {
         if (Platform.OS === 'android') {
@@ -85,62 +83,99 @@ const NoteNewScreen = ({route, navigation}) => {
             AlertIOS.alert("Tag was created");
         }
         await create("/api/tag",{name:newTag});
-        useEffect(() => {tags
-            loadTags();
-        }, []);
+        setNewTag('');
+        loadTags();
     }
+    const removeTag = async (idTag) => {
+        let res = await remove("/api/note_tag/"+route?.params?.note.id+"/"+idTag);
+        console.log(res)
+    }
+    //res = await get("/api/note_tag/1");
+    const loadSelectedTags = async (id) => {
+        let selectedTags = await get("/api/note_tag/"+id);
+        
+        let loadedTags = [];
+        selectedTags.map((tag,index)=>{
+            loadedTags[index]=tag.id;
+        });
+        setSelectedItems(loadedTags);
+        console.log("loaded tags "+loadedTags)
+    }
+
+    const loadTags = async () => {
+        setTags(await get("/api/tag"));
+        
+    }
+console.log(selectedItems)
+    const updateTags = async (tagId) => {
+        
+        let tags = await create("/api/note_tag",{
+            note_id: route?.params?.note.id,
+            tag_id: tagId,
+        });
+       console.log("set tag "+tagId)
+      
+    }
+
+
     const saveNote = async () => {
 
        if(!route?.params?.note){
-        console.debug("saveNote");
+      
             await create("/api/note",{
                 content: text,
                 def: 1,
                 scan_at: date.toISOString(),
-                send_at: date.toISOString(),
-                object_id: 1
+                send_at: new Date().toISOString(),
+                object_id: objectId
             });
+            if (Platform.OS === 'android') {
+                ToastAndroid.show("Note was saved", ToastAndroid.SHORT)
+            } else {
+                AlertIOS.alert("Note was saved");
+            }
+            navigation.navigate("notes");
         }else{
             
             let asdf = await update("/api/note/"+route.params.note.id,{
                 content: text,
                 def: route.params.note.def,
                 scan_at: date.toISOString(),
-                send_at: date.toISOString(),
+                send_at: new Date().toISOString(),
                 object_id: route.params.note.object_id
             });
+            let selectedTags = await get("/api/note_tag/"+route.params.note.id);
+        
+            selectedTags.map((tag)=>{
+                console.log("remove tag"+tag.id)
+                removeTag(tag.id);
+            });
+            selectedItems.forEach(selectedTag => {
+                updateTags(selectedTag);
+            });
+           
             if (Platform.OS === 'android') {
                 ToastAndroid.show("Note was updated", ToastAndroid.SHORT)
             } else {
                 AlertIOS.alert("Note was updated");
             }
-            navigation.navigate("objects");
+            navigation.navigate("notes");
             
         }
     }
 
     
     return (
-        
         <View style={styles.container}>
 
             <View style={{flexDirection: 'row'}}>
                 <Text style={styles.item}>Datum:</Text> 
                 <Pressable style={{padding:10,width:150,
-                borderWidth: 1,
+                borderWidth: 1,marginLeft:105,
                 borderRadius: 10}}
                 onPress={showDatepicker}  >
                     <Text>{currentDate}</Text>
                 </Pressable>
-            </View>
-
-            <View style={{flexDirection: 'row',marginTop:10}}>
-                <Text style={styles.item}>Cas:     </Text> 
-                <Pressable style={{padding:10,width:150,
-                borderWidth: 1,
-                borderRadius: 10}}
-                onPress={showTimepicker}  >
-                    <Text>{currentTime}</Text></Pressable>
             </View>
 
             {show && (
@@ -155,29 +190,9 @@ const NoteNewScreen = ({route, navigation}) => {
                 />
                 
             )}
-
-            <View style={{flexDirection: 'row',marginTop:10}}>
-                <Text style={styles.item}>Merat  cas: </Text>
-                    <Switch  style={styles.btn,{marginLeft:20}}
-                        onValueChange={toggleSwitch}
-                        value={isEnabled}
-                    />
-            </View>
-            <View style={{
-                width:"100%",
-                borderWidth: 2,
-                borderRadius: 10}}> 
-                <TextInput
-                    multiline={true}
-                    numberOfLines={4}
-                    placeholder='Text poznamky'
-                    onChangeText={(text) => setText(text)}
-                    value={text}
-                    style={{backgroundColor: '#fafafa'},styles.item}/>
-            </View>
             <View style={{flexDirection: 'row',marginTop:10,marginBottom:10}}>
                 <Text style={styles.item}>Zadat trvanie: </Text> 
-                <View style={{padding:10,width:150,
+                <View style={{padding:10,width:150,marginLeft:60,
                 borderWidth: 1,
                 borderRadius: 10}}>
                     <RNPickerSelect
@@ -196,12 +211,34 @@ const NoteNewScreen = ({route, navigation}) => {
                     />
                 </View>
             </View>
-            
             <View style={{flexDirection: 'row'}}>
-                <Text style={styles.item}>Tagy </Text>
-                <Text style={styles.item}>  {
+                <Text style={styles.item}>Merat  cas: </Text>
+                    <Switch  style={(styles.btn, {marginLeft:130})}
+                        onValueChange={()=>setIsEnabled(!isEnabled)}
+                        value={isEnabled}
+                    />
+            </View>
+            <View style={{
+                width:"100%",
+                borderWidth: 2,
+                borderRadius: 10}}> 
+                <TextInput
+                    multiline={true}
+                    numberOfLines={4}
+                    placeholder='Text poznamky'
+                    onChangeText={(text) => setText(text)}
+                    value={text}
+                    style={({backgroundColor: '#fafafa'}, styles.item)}/>
+            </View>
+            
+            
+            <View style={{flexDirection: 'row', marginTop:10,width:'80%'}}>
+                <Text style={styles.item,{marginTop:20}}>Tagy </Text>
+                <Text style={styles.item,{margin:0}}>  {
+                 
                     tags.map((tag)=>{
-                        if(selectedItems.includes(tag.id))
+                  
+                        if(selectedItems.includes(parseInt(tag.id))||selectedItems.includes(String(tag.id)))
                         {
                             return <Chip key={tag.id} style={{border:'1px solid black'}}>{tag.name}</Chip>;
                         } else{
@@ -210,7 +247,7 @@ const NoteNewScreen = ({route, navigation}) => {
                     })
                     
                 }</Text>
-                    <View style={styles.centeredView}>
+                    <View style={styles.centeredView,styles.container,{width:0}}>
                         <Modal
                             animationType="slide"
                             transparent={true}
@@ -222,8 +259,8 @@ const NoteNewScreen = ({route, navigation}) => {
                         >
                             <View style={styles.centeredView}>
                                 <View style={styles.modalView}>
-                                    <SafeAreaView style={styles.container}>
-                                        <List.Section style={styles.containerSelect}>
+                                    <SafeAreaView style={styles.container,{flex: 1}}>
+                                        <View style={styles.containerSelect}>
                                             <Text style={styles.titleText}>
                                             Multiple Select Tag
                                             </Text>
@@ -232,41 +269,46 @@ const NoteNewScreen = ({route, navigation}) => {
                                                 <View style={{
                                                     borderWidth: 1,marginLeft:5,
                                                     marginBottom:10,
-                                                    borderRadius: 5}}>
+                                                    borderRadius: 1}}>
                                                 <TextInput
                                                     placeholder='New tag'
                                                     onChangeText={(newtag) => {setNewTag(newtag)
                                                     }}
                                                     value={newTag}
-                                                    style={{backgroundColor: '#fafafa'},
-                                                    styles.item}/>   
+                                                    style={({backgroundColor: '#fafafa'}, styles.item)}/>   
                                                     </View>
                                                     
                                             </View>
                                             <Button  onPress={createTag} title="Save"></Button>
-                                            <MultiSelect
-                                            hideTags
-                                            items={tags}
-                                            uniqueKey="id"
-                                            onSelectedItemsChange={onSelectedItemsChange}
-                                            selectedItems={selectedItems}
-                                            selectText="Pick Tags"
                                             
-                                            onChangeInput={(text) => console.log(text)}
-                                            
-                                            displayKey="name"
-                                            searchInputStyle={{color: '#CCC'}}
-                                            submitButtonColor="#2196F3"
-                                            submitButtonText="Submit"
-                                            />
-                                            
-                                        </List.Section>
+                                                
+                                                <MultiSelect
+                                                styleListContainer={{height: 300}}
+                                                hideTags
+                                                items={tags.map(tag=>{
+                                                    tag.id = String(tag.id)
+                                                    return tag;
+                                                })}
+                                                uniqueKey="id"
+                                                onSelectedItemsChange={onSelectedItemsChange}
+                                                selectedItems={selectedItems}
+                                                selectText="Pick Tags"
+                                                
+                                                onChangeInput={(text) => console.log(text)}
+                                                
+                                                displayKey="name"
+                                                searchInputStyle={{color: '#CCC'}}
+                                                submitButtonColor="#2196F3"
+                                                submitButtonText="SUBMIT"
+                                                />
+                                        
+                                        </View>
                                 </SafeAreaView>
                                     <Pressable
-                                    style={[styles.button, styles.buttonClose]}
+                                    style={[styles.button, styles.buttonClose,{width:180,marginLeft:0}]}
                                     onPress={() => setModalVisible(!modalVisible)}
                                     >
-                                    <Text style={styles.textStyle}>Hide Modal</Text>
+                                    <Text style={styles.textStyle}>HIDE</Text>
                                     </Pressable>
                                 </View>
                                 </View>
@@ -274,7 +316,7 @@ const NoteNewScreen = ({route, navigation}) => {
                             
                     </View>
                     <Pressable
-                        style={[styles.button, styles.buttonClose]}
+                        style={[styles.button, styles.buttonClose,{maxHeight:40,marginTop:10}]}
                         onPress={() => setModalVisible(true)}
                     >
                         <Text style={styles.textStyle}>+</Text>
@@ -282,12 +324,12 @@ const NoteNewScreen = ({route, navigation}) => {
 
             </View>
 
-            <View style={{paddingTop:10,marginLeft:'20%'}}>
+            <View style={{paddingTop:10,width:'100%'}}>
             <Button style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center',}} title="Vyber z predvolenych"></Button>
             </View> 
 
-            <View style={{paddingTop:10,marginLeft:'26%'}}>
-            <Button  onPress={saveNote} title="Ulozit poznamku"></Button>
+            <View style={{paddingTop:10,width:'100%'}}>
+            <Button onPress={saveNote} title="Ulozit poznamku"></Button>
             </View>
         </View>
     );
@@ -375,7 +417,7 @@ const styles = StyleSheet.create({
         textAlign: "center"
       },
       titleText: {
-        padding: 8,
+        paddingBottom: 8,
         fontSize: 16,
         textAlign: 'center',
         fontWeight: 'bold',

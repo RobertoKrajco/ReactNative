@@ -12,11 +12,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 const MyComponent = ({route,navigation }) => {
 
-  
+
 
   const [index, setIndex] = React.useState(0);
-  const ObjectsRoute =  ()  => <ObjectsScreen index={index} route={route} navigation={navigation}/>;
+  console.log("update")
   const NotesRoute = () => <NotesScreen index={index} route={route} navigation={navigation}/>;
+  const ObjectsRoute =  ()  => <ObjectsScreen index={index} route={route} navigation={navigation}/>;
+  
   
   const [routes] = React.useState([
     { key: 'notes', title: 'Notes', icon: 'filter' },
@@ -31,6 +33,7 @@ const MyComponent = ({route,navigation }) => {
 
   return (
     <BottomNavigation
+    
     
       navigationState={{ index, routes }}
       onIndexChange={setIndex}
