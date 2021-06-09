@@ -18,7 +18,8 @@ const NoteNewScreen = ({route, navigation}) => {
         objectId = route.params.objectId;
         console.log("objectID ",objectId);
     }
-    
+    const [notes, setNotes] = useState([]);
+
     const { note } = useState(route.params);
     const [selectedValue, setSelectedValue] = useState(1);
     const [modalVisible, setModalVisible] = useState(false);
@@ -26,6 +27,7 @@ const NoteNewScreen = ({route, navigation}) => {
 
     const [selectedItems, setSelectedItems] = useState([]);
     const [isEnabled, setIsEnabled] = useState(false);
+    const [isDefault, setIsDefault] = useState(false);
     const [date, setDate] = useState(route?.params?.note !== undefined?new Date(route?.params?.note.created_at.toString().replace(' ','T')):new Date());
     const timeFormat =()=>{
         let datetime = '';
@@ -57,10 +59,15 @@ const NoteNewScreen = ({route, navigation}) => {
         
             loadSelectedTags(route?.params?.note.id);
             loadTags();
-           
+            loadNotes();
         
     }, [route?.params?.note.id]);
+
+    useEffect(() => {  
+        loadNotes();
     
+    }, []);
+    console.log("notes",notes);
     React.useLayoutEffect(() => {
         if(typeof route?.params?.note !== "undefined"){
             navigation.setOptions({
@@ -137,7 +144,7 @@ const NoteNewScreen = ({route, navigation}) => {
       
             await create("/api/note",{
                 content: text,
-                def: 1,
+                def: isDefault ? 1:0, 
                 scan_at: date.toISOString(),
                 send_at: send_at,
                 object_id: objectId
@@ -152,7 +159,7 @@ const NoteNewScreen = ({route, navigation}) => {
             
             let asdf = await update("/api/note/"+route.params.note.id,{
                 content: text,
-                def: route.params.note.def,
+                def: isDefault ? 1:0,
                 scan_at: date.toISOString(),
                 send_at: send_at,
                 object_id: route.params.note.object_id
@@ -172,12 +179,28 @@ const NoteNewScreen = ({route, navigation}) => {
             } else {
                 AlertIOS.alert("Note was updated");
             }
-            navigation.popToTop();
+            navigation.reset({
+                index: 0,
+                routes: [{name: 'bottom'}],
+              });
+  
             
             
         }
     }
 
+    const loadNotes = async () => {
+        
+        if(objectId==0 || objectId==undefined){
+            let note = await get("/api/note");
+            setNotes(note)         
+        }
+        else {
+            
+            let note = await get("/api/note/byobject/"+objectId);
+            setNotes(note)
+        }
+    }
 
     
     return (
@@ -227,6 +250,27 @@ const NoteNewScreen = ({route, navigation}) => {
                     />
                 </View>
             </View>
+            <View style={{flexDirection: 'row',marginBottom:10}}>
+                <Text style={styles.item}>Vyber z predvolenych: </Text> 
+                <View style={{padding:10,width:150,marginLeft:15,
+                    borderWidth: 1,borderRadius: 10}}>
+                    <RNPickerSelect
+                       useNativeAndroidPickerStyle={false}
+                       onValueChange={(value) => {
+                            if(value){
+                                setText(value.content)
+                                setDate(new Date(value.created_at.toString().replace(' ','T')))
+                                loadSelectedTags(value.id)
+                            }
+                       }}
+                            items={notes.filter(v => v.def == 1).map((note,index)=>{
+                                return { label: note.content.toString().substr(0,20), value: note }
+                                 
+                            })
+                            }
+                    />
+                </View>
+            </View>
             <View style={{flexDirection: 'row'}}>
                 <Text style={styles.item}>Merat  cas: </Text>
                     <Switch  style={(styles.btn, {marginLeft:130})}
@@ -234,14 +278,21 @@ const NoteNewScreen = ({route, navigation}) => {
                         value={isEnabled}
                     />
             </View>
+            <View style={{flexDirection: 'row'}}>
+                <Text style={styles.item}>Je predvolena: </Text>
+                    <Switch  style={(styles.btn, {marginLeft:130})}
+                        onValueChange={()=>setIsDefault(!isDefault)}
+                        value={isDefault}
+                    />
+            </View>
             <View style={{
                 width:"100%",
-                height:"50%",
+                height:"40%",
                 borderWidth: 2,
                 borderRadius: 4}}> 
                 <TextInput
                     multiline={true}
-                    numberOfLines={10}
+                    numberOfLines={8}
                     placeholder='Text poznamky'
                     onChangeText={(text) => setText(text)}
                     value={text}
@@ -336,10 +387,7 @@ const NoteNewScreen = ({route, navigation}) => {
                     </Pressable>
 
             </View>
-
          
-           
-                            
             <View style={{paddingTop:10,width:'100%'}}>
             <Button onPress={saveNote} title="Ulozit poznamku"></Button>
             </View>
