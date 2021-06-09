@@ -14,15 +14,15 @@ import RNPickerSelect from "react-native-picker-select";
 
 const NoteNewScreen = ({route, navigation}) => {
     let {objectId} = 0;
-    if(route.params !== undefined)
+    if(route.params !== undefined){
         objectId = route.params.objectId;
- 
+        console.log("objectID ",objectId);
+    }
     const { note } = useState(route.params);
     const [selectedValue, setSelectedValue] = useState(1);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
     const [isEnabled, setIsEnabled] = useState(false);
-    const toggleSwitch = () => setIsEnabled(previousState => !previousState);
     const [date, setDate] = useState(route?.params?.note !== undefined?new Date(route?.params?.note.created_at.toString().replace(' ','T')):new Date());
     const timeFormat =()=>{
         let datetime = '';
@@ -45,29 +45,35 @@ const NoteNewScreen = ({route, navigation}) => {
     const currentTime = timeFormat();
     const onChange = (event, selectedDate) => {
       const currentDate = selectedDate || date;
-      setDate(currentDate);
       setShow(Platform.OS === 'ios' ? true : false);
+      setDate(currentDate);
+      
     };
-
-    if(typeof route?.params?.note !== "undefined"){
-    React.useLayoutEffect(() => {
-       
-        navigation.setOptions({
-          title:  'Poznamka '+route?.params?.note.id ,
-          objects: false
-        });
-      });
-      useEffect(() => {
-        loadSelectedTags(route?.params?.note.id);
-        loadTags();
-        console.log("refresh")
+    if(typeof route?.params?.note !== "undefined")
+    useEffect(() => {  
+        
+            loadSelectedTags(route?.params?.note.id);
+            loadTags();
+            console.log("refresh")
+        
     }, [route?.params?.note.id]);
-    }
+    
+    React.useLayoutEffect(() => {
+        if(typeof route?.params?.note !== "undefined"){
+            navigation.setOptions({
+                title:  'Poznamka '+route?.params?.note.id,
+                objects: false
+            });
+        }
+      });
+    
     const showMode = currentMode => {
       setShow(true);
       setMode(currentMode);
     };
-  
+
+    
+
     const showDatepicker = () => {showMode('date');};
     const showTimepicker = () => {showMode('time');};
     const onSelectedItemsChange = (selectedTags) => {
@@ -121,13 +127,16 @@ const NoteNewScreen = ({route, navigation}) => {
 
     const saveNote = async () => {
 
+        let send_at = new Date().toISOString();
+        if(isEnabled)
+        send_at = date.setHours( date.getHours() + selectedValue ).toISOString();
        if(!route?.params?.note){
       
             await create("/api/note",{
                 content: text,
                 def: 1,
                 scan_at: date.toISOString(),
-                send_at: new Date().toISOString(),
+                send_at: send_at,
                 object_id: objectId
             });
             if (Platform.OS === 'android') {
@@ -142,7 +151,7 @@ const NoteNewScreen = ({route, navigation}) => {
                 content: text,
                 def: route.params.note.def,
                 scan_at: date.toISOString(),
-                send_at: new Date().toISOString(),
+                send_at: send_at,
                 object_id: route.params.note.object_id
             });
             let selectedTags = await get("/api/note_tag/"+route.params.note.id);
@@ -182,6 +191,7 @@ const NoteNewScreen = ({route, navigation}) => {
             {show && (
                 <DateTimePicker
                 testID="dateTimePicker"
+            
                 timeZoneOffsetInMinutes={0}
                 value={date}
                 mode={mode}
@@ -221,11 +231,12 @@ const NoteNewScreen = ({route, navigation}) => {
             </View>
             <View style={{
                 width:"100%",
+                height:"50%",
                 borderWidth: 2,
-                borderRadius: 10}}> 
+                borderRadius: 4}}> 
                 <TextInput
                     multiline={true}
-                    numberOfLines={4}
+                    numberOfLines={10}
                     placeholder='Text poznamky'
                     onChangeText={(text) => setText(text)}
                     value={text}

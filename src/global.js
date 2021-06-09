@@ -1,5 +1,5 @@
-export const URL = "http://10.0.2.2:3000";
-
+//export const URL = "http://10.0.2.2:3000";
+export const URL = "http://192.168.1.139:3000";
 
 export const headers = () => {
     return {

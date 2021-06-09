@@ -6,6 +6,7 @@ import ObjectsScreen from './Screens/ObjectsScreen';
 import NotesNewScreen from './Screens/NotesNewScreen';
 import NotesScreen from './Screens/NotesScreen';
 import BottomNavScreen from './Screens/BottomNavScreen';
+import BarCodeScan from './Screens/BarCodeScan';
 import {  PermissionsAndroid} from "react-native";
 
 const Stack = createStackNavigator();
@@ -27,7 +28,7 @@ export default function Root() {
                             <Appbar.Action onPress={() => navigation.navigate("newnote")}/>
                             {scene.descriptor.options.objects ? <Appbar.Action icon="arrow-up-bold-circle-outline" 
                   
-                                onPress={( () => {navigation.navigate("newnote")})} />:null}
+                                onPress={( () => {navigation.navigate("scanner")})} />:null}
                         </Appbar.Header>
                     );
                 }
@@ -62,6 +63,12 @@ export default function Root() {
                 name="notes" 
                 component={NotesScreen} 
                 options={({ route }) => ({ title: "Poznamky",objects:false })} 
+            />
+            <Stack.Screen
+                name="scanner"
+
+                component={BarCodeScan}
+                options={({ route }) => ({ title: "Scanner",objects:false })}
             />
             
         </Stack.Navigator>

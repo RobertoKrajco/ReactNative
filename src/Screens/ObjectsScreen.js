@@ -9,10 +9,6 @@ import { SafeAreaView,Pressable, Modal,TextInput,
      Text 
   } from 'react-native';
 
-
-
-
-
 const ObjectsScreen = ({ index,route,navigation }) => {
 
     const [objects, setObjects] = useState([]);

@@ -83,7 +83,8 @@ export default function NotesScreen({ index,route,navigation }) {
             notes && 
             notes.map((note,index)=>{
                
-                if(note.content.includes(searchQuery) || searchQuery === '')
+                if(String(note.content).toLowerCase().includes(String(searchQuery).toLowerCase()) 
+                    || searchQuery === '')
                 {
                     return   (
                     <List.Item
