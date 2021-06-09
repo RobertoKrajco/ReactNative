@@ -1,10 +1,10 @@
 {
   "devToolsPort": 19002,
-  "expoServerPort": null,
+  "expoServerPort": 19000,
   "packagerPort": 19000,
   "packagerPid": null,
   "expoServerNgrokUrl": "https://9j-hcu.anonymous.pmi2vs.exp.direct",
   "packagerNgrokUrl": "https://packager.9j-hcu.anonymous.pmi2vs.exp.direct",
-  "ngrokPid": 3384,
+  "ngrokPid": 976,
   "webpackServerPort": null
 }

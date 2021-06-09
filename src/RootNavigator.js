@@ -45,7 +45,7 @@ export default function Root() {
                 name="bottom" 
                 component={BottomNavScreen} 
                 
-                options={({ route }) => ({ title: "Poznamky" ,objects:false})} 
+                options={({ route }) => ({ title: "Poznamky" ,objects:true})} 
             />
             <Stack.Screen
                 name="objects"
@@ -62,7 +62,7 @@ export default function Root() {
              <Stack.Screen 
                 name="notes" 
                 component={NotesScreen} 
-                options={({ route }) => ({ title: "Poznamky",objects:false })} 
+                options={({ route }) => ({ title: "Poznamky",objects:true })} 
             />
             <Stack.Screen
                 name="scanner"

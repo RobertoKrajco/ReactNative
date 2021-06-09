@@ -26,7 +26,7 @@ export default function NotesScreen({ index,route,navigation }) {
         
         navigation.setOptions({
           title:  'Poznamky' ,
-          objects: false
+          objects: true
         });
 
       });
@@ -35,7 +35,7 @@ export default function NotesScreen({ index,route,navigation }) {
        
         navigation.setOptions({
           title:  'Poznamky objektu '+objectId ,
-          objects: false
+          objects: true
         });
       });
       
@@ -65,8 +65,7 @@ export default function NotesScreen({ index,route,navigation }) {
    
     useEffect(() => {
         loadNotes();
-       
-    }, []);
+    }, [route]);
 
 
     return (

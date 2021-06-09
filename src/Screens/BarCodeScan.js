@@ -14,21 +14,9 @@ export default function BarCodeScan({route,navigation }) {
     })();
   }, []);
 
-  const verifyObject = async (scannedId) => {
-        let objects = await get("/api/object");
-        objects.array.forEach(object => {
-            if(object.id == scannedId){
-                console.log("valid");
-                return true;
-            }
-        });
-        return false;
-    }
-
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
-    if(verifyObject(data))
-        navigation.navigate("newnote",{objectId:data})
+    navigation.navigate("newnote",{objectId:data})
   };
 
   if (hasPermission === null) {

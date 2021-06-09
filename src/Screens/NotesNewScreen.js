@@ -18,9 +18,12 @@ const NoteNewScreen = ({route, navigation}) => {
         objectId = route.params.objectId;
         console.log("objectID ",objectId);
     }
+    
     const { note } = useState(route.params);
     const [selectedValue, setSelectedValue] = useState(1);
     const [modalVisible, setModalVisible] = useState(false);
+    const [modalDefaultVisible, setDefaultModalVisible] = useState(false);
+
     const [selectedItems, setSelectedItems] = useState([]);
     const [isEnabled, setIsEnabled] = useState(false);
     const [date, setDate] = useState(route?.params?.note !== undefined?new Date(route?.params?.note.created_at.toString().replace(' ','T')):new Date());
@@ -54,7 +57,7 @@ const NoteNewScreen = ({route, navigation}) => {
         
             loadSelectedTags(route?.params?.note.id);
             loadTags();
-            console.log("refresh")
+           
         
     }, [route?.params?.note.id]);
     
@@ -144,7 +147,7 @@ const NoteNewScreen = ({route, navigation}) => {
             } else {
                 AlertIOS.alert("Note was saved");
             }
-            navigation.navigate("notes");
+            navigation.popToTop();
         }else{
             
             let asdf = await update("/api/note/"+route.params.note.id,{
@@ -169,10 +172,12 @@ const NoteNewScreen = ({route, navigation}) => {
             } else {
                 AlertIOS.alert("Note was updated");
             }
-            navigation.navigate("notes");
+            navigation.popToTop();
+            
             
         }
     }
+
 
     
     return (
@@ -332,10 +337,9 @@ const NoteNewScreen = ({route, navigation}) => {
 
             </View>
 
-            <View style={{paddingTop:10,width:'100%'}}>
-            <Button style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center',}} title="Vyber z predvolenych"></Button>
-            </View> 
-
+         
+           
+                            
             <View style={{paddingTop:10,width:'100%'}}>
             <Button onPress={saveNote} title="Ulozit poznamku"></Button>
             </View>
